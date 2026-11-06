@@ -16,7 +16,8 @@ android {
     }
 
     signingConfigs {
-        create("debug") {
+        // AGP pre-creates "debug"; configure it instead of creating it.
+        getByName("debug") {
             storeFile = file("../debug.keystore")
             storePassword = "android"
             keyAlias = "khoroch-debug"
