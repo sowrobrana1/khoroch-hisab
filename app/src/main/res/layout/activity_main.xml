@@ -12,6 +12,48 @@
         android:textSize="28sp"
         android:textStyle="bold" />
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/new_hisab_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
+            android:layout_weight="1"
+            android:text="নতুন হিসাব শুরু"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/old_hisab_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
+            android:layout_weight="1"
+            android:text="পুরোনো হিসাব"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/share_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="শেয়ার"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/current_ledger_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="বর্তমান হিসাব"
+        android:textColor="@color/text2"
+        android:textSize="14sp" />
+
     <TextView
         android:id="@+id/grand_total"
         android:layout_width="wrap_content"
