@@ -10,7 +10,7 @@ data class ExpenseRow(val expense: Expense, val runningTotal: Long)
 
 class ExpenseAdapter(
     private var rows: List<ExpenseRow>,
-    private val onLongPress: (Expense) -> Unit
+    private val onLongPress: ((Expense) -> Unit)? = null
 ) : RecyclerView.Adapter<ExpenseAdapter.Holder>() {
 
     class Holder(v: View) : RecyclerView.ViewHolder(v) {
@@ -32,9 +32,11 @@ class ExpenseAdapter(
         h.place.text = row.expense.place
         h.amount.text = "${Bangla.num(row.expense.amount)} টাকা"
         h.total.text = "মোট: ${Bangla.num(row.runningTotal)} টাকা"
-        h.itemView.setOnLongClickListener {
-            onLongPress(row.expense)
-            true
+        if (onLongPress != null) {
+            h.itemView.setOnLongClickListener {
+                onLongPress.invoke(row.expense)
+                true
+            }
         }
     }
 
