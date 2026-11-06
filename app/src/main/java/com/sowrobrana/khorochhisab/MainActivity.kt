@@ -1,6 +1,7 @@
 package com.sowrobrana.khorochhisab
 
 import android.app.DatePickerDialog
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -18,6 +19,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var db: ExpenseDbHelper
     private lateinit var adapter: ExpenseAdapter
     private lateinit var grandTotalView: TextView
+    private lateinit var ledgerLabelView: TextView
     private lateinit var emptyView: TextView
     private lateinit var listView: RecyclerView
 
@@ -30,6 +32,7 @@ class MainActivity : AppCompatActivity() {
         db = ExpenseDbHelper(this)
 
         grandTotalView = findViewById(R.id.grand_total)
+        ledgerLabelView = findViewById(R.id.current_ledger_label)
         emptyView = findViewById(R.id.empty_view)
         listView = findViewById(R.id.expense_list)
         listView.layoutManager = LinearLayoutManager(this)
@@ -37,10 +40,26 @@ class MainActivity : AppCompatActivity() {
         adapter = ExpenseAdapter(emptyList()) { expense -> confirmDelete(expense) }
         listView.adapter = adapter
 
+        val newHisabButton: Button = findViewById(R.id.new_hisab_button)
+        val oldHisabButton: Button = findViewById(R.id.old_hisab_button)
+        val shareButton: Button = findViewById(R.id.share_button)
         val dateButton: Button = findViewById(R.id.date_button)
         val placeInput: EditText = findViewById(R.id.place_input)
         val amountInput: EditText = findViewById(R.id.amount_input)
         val addButton: Button = findViewById(R.id.add_button)
+
+        newHisabButton.setOnClickListener { confirmNewHisab() }
+        oldHisabButton.setOnClickListener {
+            startActivity(Intent(this, LedgerListActivity::class.java))
+        }
+        shareButton.setOnClickListener {
+            val expenses = db.all()
+            if (expenses.isEmpty()) {
+                Toast.makeText(this, "এখনো কোনো খরচ লেখা হয়নি", Toast.LENGTH_SHORT).show()
+            } else {
+                showShareChoices(currentLedgerDisplayName(), expenses)
+            }
+        }
 
         updateDateButton(dateButton)
         dateButton.setOnClickListener {
@@ -76,6 +95,49 @@ class MainActivity : AppCompatActivity() {
         refresh()
     }
 
+    private fun currentLedgerDisplayName(): String {
+        val cur = db.currentLedger()
+        return if (cur?.startDate != null) {
+            "বর্তমান হিসাব — ${Bangla.formatDate(cur.startDate)} থেকে"
+        } else {
+            "বর্তমান হিসাব"
+        }
+    }
+
+    private fun confirmNewHisab() {
+        if (db.all().isEmpty()) {
+            Toast.makeText(this, "এখনো কোনো খরচ লেখা হয়নি", Toast.LENGTH_SHORT).show()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("নতুন হিসাব শুরু করবে?")
+            .setMessage(
+                "এখনকার সব খরচ আলাদা ফাইলে জমা থাকবে — কিছু মুছবে না। " +
+                    "তারপর নতুন হিসাব খালি থেকে শুরু হবে।"
+            )
+            .setPositiveButton("হ্যাঁ, শুরু করো") { _, _ ->
+                db.startNewLedger()
+                refresh()
+                Toast.makeText(
+                    this,
+                    "নতুন হিসাব শুরু হলো — পুরোনোটা 'পুরোনো হিসাব'-এ জমা আছে",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+            .setNegativeButton("না", null)
+            .show()
+    }
+
+    private fun showShareChoices(ledgerName: String, expenses: List<Expense>) {
+        AlertDialog.Builder(this)
+            .setTitle("কীভাবে পাঠাবে?")
+            .setItems(arrayOf("ছবি হিসেবে", "লেখা হিসেবে")) { _, which ->
+                if (which == 0) ShareHelper.shareAsImage(this, ledgerName, expenses)
+                else ShareHelper.shareAsText(this, ledgerName, expenses)
+            }
+            .show()
+    }
+
     private fun updateDateButton(dateButton: Button) {
         dateButton.text = Bangla.formatDate(
             selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
@@ -89,6 +151,7 @@ class MainActivity : AppCompatActivity() {
         adapter.update(rows)
         val grand = totals.lastOrNull() ?: 0L
         grandTotalView.text = "সব মিলিয়ে মোট: ${Bangla.num(grand)} টাকা"
+        ledgerLabelView.text = currentLedgerDisplayName()
         emptyView.visibility =
             if (rows.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
     }
